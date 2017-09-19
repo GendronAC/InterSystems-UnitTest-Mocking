@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Tests.MockTests.CMockTest">
+<Super>Tests.Fw.CUnitTestBase</Super>
+<TimeCreated>63855,43737.569826</TimeCreated>
+
+<Property name="mock">
+<Type>Tests.MockTests.IMockTest</Type>
+</Property>
+
+<Property name="mock2">
+<Type>Tests.MockTests.IMockTest</Type>
+</Property>
+
+<Property name="mockTestObject">
+<Type>Tests.MockTests.CMockTestObject</Type>
+</Property>
+
+<Method name="RunTests">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[   do ##super()
+]]></Implementation>
+</Method>
+
+<Method name="OnBeforeOneTest">
+<FormalSpec>testname:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+   set ..mock = ..CreateMock()
+   set ..mock2 = ..CreateMock(##class(Tests.MockTests.IMockTest).%ClassName(1))
+   set ..mockTestObject = ##class(Tests.MockTests.CMockTestObject).%New(..mock)
+   quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="TestMockSuccessReturnObject">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A")).AndReturn(..mock).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), ..mock)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockSuccessReturnDataType">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A")).AndReturn(1).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), 1)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockSuccessTimes2">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A")).AndReturn(1).Times(2)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), 1)
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), 1)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockSuccessTimesNoTimes">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A")).AndReturn(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), 1)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockSuccessNoReturn">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A")).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), "")
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorWrongInstance">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A")).Times(1)
+   do ..ReplayAllMocks()
+   
+   do ..mockTestObject.SetMock(..CreateMock())
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), "")
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorWrongMethod">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A")).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallAnotherSameMethod("A"), "")
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorWrongParameterCountExpectedMore">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A", "1")).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), "")
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorWrongParameterCountGotMore">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethodTwoParams("A")).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethodTwoParams("A", "B"), "")
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorReturnWrongParameter">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("B")).AndReturn(1).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), 1)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorWrongSecondParameter">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethodTwoParams("A", "B")).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethodTwoParams("A", "C"), "")
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorNoMoreExpectedMethod">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A")).AndReturn(..mock).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), ..mock)
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), "")
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorNoExpectedMethodEver">
+<Implementation><![CDATA[
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), "")
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorMethodExpectedLeft">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod("A")).AndReturn(..mock).Times(1)
+   do ..ReplayAllMocks()
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockSuccessMultipleMocks">
+<Implementation><![CDATA[
+   do ..mockTestObject.SetSecondMock(..mock2)
+   do ..Expect(..mock.CallSameMethod("A")).AndReturn(..mock).Times(1)
+   do ..Expect(..mock2.CallSameMethod("B")).AndReturn(..mock2).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), ..mock)
+   do $$$AssertEquals(..mockTestObject.CallSameMethodSecondMock("B"), ..mock2)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockSuccessMultipleMocksMultipleCalls">
+<Implementation><![CDATA[
+   do ..mockTestObject.SetSecondMock(..mock2)
+   do ..Expect(..mock.CallSameMethod("A")).AndReturn(1).Times(2)
+   do ..Expect(..mock2.CallSameMethod("B")).AndReturn(2).Times(1)
+   do ..Expect(..mock.CallAnotherSameMethod("C")).AndReturn(3).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), 1)
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), 1)
+   do $$$AssertEquals(..mockTestObject.CallSameMethodSecondMock("B"), 2)
+   do $$$AssertEquals(..mockTestObject.CallAnotherSameMethod("C"), 3)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorMultipleMocksWrongOrder">
+<Implementation><![CDATA[
+   do ..mockTestObject.SetSecondMock(..mock2)
+   do ..Expect(..mock2.CallSameMethod("B")).AndReturn(..mock).Times(1)
+   do ..Expect(..mock.CallSameMethod("A")).AndReturn(..mock2).Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), "")
+   do $$$AssertEquals(..mockTestObject.CallSameMethodSecondMock("B"), ..mock)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// --- NotNull tests ---
+
+]]></Content>
+</UDLText>
+
+<Method name="TestMockSuccessNotNullObjectValidator">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod(..NotNullObject("%Stream.GlobalCharacter"))).AndReturn("A").Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod(##class("%Stream.GlobalCharacter").%New("A")), "A")
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorNotNullObjectValidatorNullObject">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod(..NotNullObject("%Stream.GlobalCharacter"))).AndReturn("A").Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod(""), "A")
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorNotNullObjectValidatorNotAnObject">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod(..NotNullObject("%String"))).AndReturn("A").Times(1)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("A"), "A")
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// --- UseCustomFunctionValidation tests ---
+
+]]></Content>
+</UDLText>
+
+<Method name="TestMockSuccessUseCustomFunctionValidation">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod(..UseCustomFunctionValidation(..mockTestObject, "VerificationMethod"))).AndReturn("A")
+   do ..Expect(..mock.VerificationMethod("123"))
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("123"), "A")
+
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockErrorUseCustomFunctionValidationUnknownFunction">
+<Implementation><![CDATA[
+   do ..Expect(..mock.CallSameMethod(..UseCustomFunctionValidation(..mockTestObject, "UndefinedFunction"))).AndReturn("A")
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethod("123"), "A")
+
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// --- ByRef tests ---
+
+]]></Content>
+</UDLText>
+
+<Method name="TestMockSuccessByRef">
+<Implementation><![CDATA[
+   #dim strParameter = "A"
+   #dim strParameterFinalValue = "B"
+   do ..Expect(..mock.CallSameMethodByRef(..ByRefParam(strParameter,
+                                                                               strParameterFinalValue))).AndReturn(..mock)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethodByRef(.strParameter), ..mock)
+   do $$$AssertEquals(strParameter, strParameterFinalValue)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestMockSuccessNotNullByRef">
+<Implementation><![CDATA[
+   #dim strParameter = ##class(%Stream.GlobalBinary).%New()
+   #dim strParameterFinalValue = ##class(%Stream.GlobalBinary).%New("AAAAA")
+
+   do ..Expect(..mock.CallSameMethodByRef(..ByRefParam(..NotNullObject("%Stream.GlobalBinary"),
+                                                                               strParameterFinalValue))).AndReturn(..mock)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertEquals(..mockTestObject.CallSameMethodByRef(.strParameter), ..mock)
+   do $$$AssertEquals(strParameter, strParameterFinalValue)
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// -- SetMockResultSet tests --
+
+]]></Content>
+</UDLText>
+
+<Method name="TestMockSuccessSetMockResultSet">
+<Implementation><![CDATA[
+   do $$$AssertEquals(##class(Fw.CResultSetTools).GetNewResultSet().%ClassName(1), ##class(%ResultSet).%ClassName(1))
+   do ..SetMockResultSet("", ..%ClassName(1)_"||ResultSetOverrides")
+   do $$$AssertEquals(##class(Fw.CResultSetTools).GetNewResultSet().%ClassName(1), ##class(Tests.Fw.Mock.CMockResultSet).%ClassName(1))
+   
+   // $$$NULLOREF because "Query" is an invalid parameter for %ResultSet, it needs to be an existing className:queryName
+   do $$$AssertEquals(##class(Fw.CResultSetTools).GetNewResultSet("Query"), $$$NULLOREF) 
+   do ..SetMockResultSet("Query", ..%ClassName(1)_"||ResultSetOverrides")
+   do $$$AssertEquals(##class(Fw.CResultSetTools).GetNewResultSet("Query").%ClassName(1), ##class(Tests.Fw.Mock.CMockResultSet).%ClassName(1))
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// -- GetMockResultSet tests --
+
+]]></Content>
+</UDLText>
+
+<Method name="TestMockSuccessGetMockResultSet">
+<Implementation><![CDATA[
+   do $$$AssertEquals(..GetMockResultSet().%ClassName(1), ##class(%ResultSet).%ClassName(1))
+   do ..SetMockResultSet("", ..%ClassName(1)_"||ResultSetOverrides")
+   do $$$AssertEquals(..GetMockResultSet().%ClassName(1), ##class(Tests.Fw.Mock.CMockResultSet).%ClassName(1))
+   
+   // $$$NULLOREF because "Query" is an invalid parameter for %ResultSet, it needs to be an existing className:queryName
+   do $$$AssertEquals(..GetMockResultSet("Query"), $$$NULLOREF) 
+   do ..SetMockResultSet("Query", ..%ClassName(1)_"||ResultSetOverrides")
+   do $$$AssertEquals(..GetMockResultSet("Query").%ClassName(1), ##class(Tests.Fw.Mock.CMockResultSet).%ClassName(1))
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// -- Helper method --
+
+]]></Content>
+</UDLText>
+
+<XData name="ResultSetOverrides">
+<Data><![CDATA[
+<Query>
+<ColumnsNames>;FacilityID;Name;ShortName;SiteCode</ColumnsNames>
+<Row>C;Centre hospitalier;CHUS;123456</Row>
+<Row>D;Ailleurs très loin;FAR;-</Row>
+</Query>
+]]></Data>
+</XData>
+</Class>
+</Export>

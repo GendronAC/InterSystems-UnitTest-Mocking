@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Tests.Fw.Mock.CMockResultSet">
+<Super>%RegisteredObject,%XML.Adaptor</Super>
+<TimeCreated>64030,49821.000032</TimeCreated>
+
+<Parameter name="XMLNAME">
+<Default>Query</Default>
+</Parameter>
+
+<Property name="strColumnNames">
+<Type>%String</Type>
+<Private>1</Private>
+<Parameter name="MAXLEN" value="1000"/>
+<Parameter name="XMLNAME" value="ColumnsNames"/>
+<Parameter name="XMLPROJECTION" value="ELEMENT"/>
+</Property>
+
+<Property name="rows">
+<Type>%String</Type>
+<Collection>list</Collection>
+<Private>1</Private>
+<Parameter name="MAXLEN" value="5000"/>
+<Parameter name="XMLNAME" value="Row"/>
+<Parameter name="XMLPROJECTION" value="ELEMENT"/>
+</Property>
+
+<Property name="%ROWCOUNT">
+<Type>%Integer</Type>
+<InitialExpression>0</InitialExpression>
+<Parameter name="XMLPROJECTION" value="NONE"/>
+</Property>
+
+<Method name="%OnNew">
+<FormalSpec>lstRows:%ListOfDataTypes=##class(%ListOfDataTypes).%New()</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<ServerOnly>1</ServerOnly>
+<Implementation><![CDATA[
+   set ..rows = lstRows
+   Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="CreateFromXData">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>xDataName:%String</FormalSpec>
+<ReturnType>Tests.Fw.Mock.CMockResultSet</ReturnType>
+<Implementation><![CDATA[
+   #Dim customResultSet As Tests.Fw.Mock.CMockResultSet = $$$NULLOREF
+
+   set xData = ##class(%Dictionary.CompiledXData).%OpenId(xDataName)
+   set reader = ##class(%XML.Reader).%New()
+   if $IsObject(xData) && $$$ISOK(reader.OpenStream(xData.Data))
+   {
+      do reader.Correlate(..#XMLNAME, ..%ClassName(1))
+      do reader.Next(.customResultSet)
+   }
+   
+   quit customResultSet
+]]></Implementation>
+</Method>
+
+<Method name="Prepare">
+<FormalSpec>args...</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+   set ..%ROWCOUNT = 0
+   quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Execute">
+<FormalSpec>args...</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+   set ..%ROWCOUNT = 0
+   quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Next">
+<Description>
+Advance the result set cursor to the next row. Returns 0 if the cursor is at the end of the 
+result set.</Description>
+<FormalSpec><![CDATA[&sc:%Status]]></FormalSpec>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[
+  
+   set ..%ROWCOUNT = ..%ROWCOUNT + 1
+   
+   quit (..%ROWCOUNT <= ..rows.Count())
+]]></Implementation>
+</Method>
+
+<Method name="%DispatchGetProperty">
+<FormalSpec>pProperty:%String</FormalSpec>
+<Implementation><![CDATA[
+   #Dim returnValue As %String = ""
+   if ((..%ROWCOUNT > 0) && (..%ROWCOUNT <= ..rows.Count()))
+   {
+      set returnValue = ..GetData($ListFind(..GetColumnNamesList($ZConvert(..strColumnNames, "U")), $ZConvert(pProperty,"U")))
+   }
+   quit returnValue
+]]></Implementation>
+</Method>
+
+<Method name="GetRowCount">
+<Description>
+Returns the number of rows in the result set.</Description>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[   quit ..rows.Count()
+]]></Implementation>
+</Method>
+
+<Method name="GetColumnCount">
+<Description>
+Returns the number of columns in the result set.</Description>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[   quit $ListLength(..GetColumnNamesList(..strColumnNames))
+]]></Implementation>
+</Method>
+
+<Method name="GetColumnName">
+<Description><![CDATA[
+Returns the name of column <var>nIndex</var> in the result set.]]></Description>
+<FormalSpec>nIndex:%Integer</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+   #Dim strColumnName As %String = ""
+   try 
+   {
+      set strColumnName = $List(..GetColumnNamesList(..strColumnNames), nIndex)
+   }
+   catch 
+   {
+      // $List throws an error if nIndex is 0 or when given an empty list, this is annoying.
+   }
+   quit strColumnName
+]]></Implementation>
+</Method>
+
+<Method name="GetData">
+<Description><![CDATA[
+Returns the value of column <var>nIndex</var> in the current row of the result set.]]></Description>
+<FormalSpec>nIndex:%Integer</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+   #Dim strData As %String = ""
+   
+   try
+   {
+      set strData = $List($ListFromString(..rows.GetAt(..%ROWCOUNT), ..GetSeparator()), nIndex)
+   }
+   catch 
+   {
+      // $List throws an error if nIndex is 0 or when given an empty list, this is annoying.
+   }
+   
+   quit strData
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// -- Helper --
+
+]]></Content>
+</UDLText>
+
+<Method name="GetSeparator">
+<Private>1</Private>
+<ReturnType>%Char</ReturnType>
+<Implementation><![CDATA[   quit $Extract(..strColumnNames, 1, 1)
+]]></Implementation>
+</Method>
+
+<Method name="GetColumnNamesList">
+<FormalSpec>strColumnNames:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[   quit $ListFromString($Extract(strColumnNames, 2, *), ..GetSeparator())
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Tests.Fw.Mock.CMockBase">
+<StorageStrategy/>
+<Super>%RegisteredObject</Super>
+<TimeCreated>63854,30397.336751</TimeCreated>
+
+<Property name="mockManager">
+<Type>Tests.Fw.Mock.CMockManager</Type>
+<Private>1</Private>
+</Property>
+
+<Method name="%OnNew">
+<Internal>1</Internal>
+<FormalSpec>mockManager:Tests.Fw.Mock.CMockManager</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+   set ..mockManager = mockManager
+   
+   quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="%DispatchMethod">
+<Description>
+Since the return type is unknown we cant't specify %RegisteredObject or %DataType as the return value.</Description>
+<Internal>1</Internal>
+<FormalSpec>strMethod:%String,args...</FormalSpec>
+<Implementation><![CDATA[
+   #dim returnValue
+   #dim lstparams = ..TransformArgsToList(args...)
+   if (..mockManager.IsInReplayMode())
+   {
+      set returnValue = ..mockManager.MethodCalled($THIS,
+                                                   strMethod,
+                                                  .lstparams)
+                                                  
+      #dim nIndex As %Integer = 0
+      for nIndex = 1:1:$get(args, 0)
+      {
+         set args(nIndex) = lstparams.GetAt(nIndex)
+      }
+   }
+   else
+   {
+      set returnValue = ..mockManager.CreateExpectation($THIS,
+                                                        strMethod,
+                                                        lstparams)
+   }
+   
+   quit returnValue
+]]></Implementation>
+</Method>
+
+<Method name="%DispatchGetProperty">
+<Description>
+Is used to get the value of an unknown property.</Description>
+<FormalSpec>Property:%String</FormalSpec>
+<ServerOnly>1</ServerOnly>
+<Implementation><![CDATA[   quit ..%DispatchMethod(Property_"Get")
+]]></Implementation>
+</Method>
+
+<Method name="%DispatchSetProperty">
+<Description>
+is used to set the value of an unknown property.</Description>
+<FormalSpec>Property:%String,Val</FormalSpec>
+<ServerOnly>1</ServerOnly>
+<Implementation><![CDATA[   quit ..%DispatchMethod(Property_"Set", Val)
+]]></Implementation>
+</Method>
+
+<Method name="TransformArgsToList">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>args...</FormalSpec>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[
+   // Create a %ListOfDataTypes even though it may contain objects. This has been tested and works.
+   #dim listArgs = ##class(%ListOfDataTypes).%New()
+   #dim i AS %Integer
+   for i = 1 : 1 : $get(args, 0)
+   {
+      do listArgs.Insert($get(args(i)))
+   }
+   
+   quit listArgs
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Tests.Unit.chs.Fw.EnsExt.File.CTestTestedPassthroughOperation">
+<IncludeCode>Ensemble</IncludeCode>
+<Super>Tests.Fw.CUnitTestBase</Super>
+<TimeCreated>64194,49028.837417</TimeCreated>
+
+<Property name="operation">
+<Type>EnsLib.File.PassthroughOperation</Type>
+</Property>
+
+<Property name="Adapter">
+<Type>EnsLib.File.OutboundAdapter</Type>
+</Property>
+
+<Method name="RunTests">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[   do ##super()
+]]></Implementation>
+</Method>
+
+<Method name="OnBeforeOneTest">
+<FormalSpec>testname:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+   set ..Adapter = ..CreateMock()
+   set ..operation = ##class(chs.Fw.EnsExt.File.CTestedPassthroughOperation).%New("UnitTest", ..Adapter)
+   set ..operation.Filename = "%f_%Q"
+   
+   quit $$$OK
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// -- OnMessage tests --
+
+]]></Content>
+</UDLText>
+
+<Method name="TestOnMessage">
+<Implementation><![CDATA[
+   set stream = ##class(%Stream.GlobalCharacter).%New()
+   do stream.Write("Test")
+   set ensStream = ##class(Ens.StreamContainer).%New(stream)
+   set ensStream.OriginalFilename = "C:/Temp/Blah.txt"
+      
+   do ..Expect(..Adapter.FilePath).AndReturn("C:/Temp/")
+   do ..Expect(..Adapter.CreateFilename("Blah.txt", "%f_%Q")).AndReturn("Blah.txt_20170901...txt")
+   do ..Expect(..Adapter.PutStream("Blah.txt_20170901...txt", stream)).AndReturn($$$OK)
+   do ..ReplayAllMocks()
+   
+   do $$$AssertStatusOK(..operation.OnMessage(ensStream, .out))
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+
+<Method name="TestOnMessageFailure">
+<Implementation><![CDATA[
+   set stream = ##class(%Stream.GlobalCharacter).%New()
+   do stream.Write("Test")
+   set ensStream = ##class(Ens.StreamContainer).%New(stream)
+   set ensStream.OriginalFilename = "C:/Temp/Blah.txt"
+      
+   do ..Expect(..Adapter.FilePath).AndReturn("C:/Temp/")
+   do ..Expect(..Adapter.CreateFilename("Blah.txt", "%f_%Q")).AndReturn("Blah.txt_20170901...txt")
+   do ..Expect(..Adapter.PutStream("Blah.txt_20170901...txt", stream)).AndReturn($$$ERROR($$$EnsErrGeneral, "PutStream() Rename failed with code 1"))
+   do ..ReplayAllMocks()
+   
+   do $$$AssertStatusNotOK(..operation.OnMessage(ensStream, .out))
+   
+   do ..VerifyAllMocks()
+]]></Implementation>
+</Method>
+</Class>
+</Export>

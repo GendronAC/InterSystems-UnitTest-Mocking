@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Tests.Fw.Mock.CNotNullObjectMockParamValidator">
+<Super>%RegisteredObject,Tests.Fw.Mock.IMockParamValidator</Super>
+<TimeCreated>63860,44927.361891</TimeCreated>
+
+<Property name="strExpectedClassName">
+<Type>%String</Type>
+</Property>
+
+<Method name="%OnNew">
+<Internal>1</Internal>
+<FormalSpec>strExpectedClassName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+   set ..strExpectedClassName = strExpectedClassName
+   
+   quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Validate">
+<Internal>1</Internal>
+<FormalSpec>object</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+   #dim status As %Status = $$$ERROR("Wrong class or null")
+   if ($data(object) && (object '= $$$NULLOREF) && $IsObject(object) && object.%IsA(..strExpectedClassName))
+   {
+      set status = $$$OK
+   }
+   
+   quit status
+]]></Implementation>
+</Method>
+
+<Method name="GetAssertDescription">
+<Internal>1</Internal>
+<FormalSpec>nIndex:%Integer,strMethodName:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[   quit "Expected Parameter(" _ nIndex _ ") not null  for method: " _ strMethodName _ " Got either a null, not an object or a wrong object"
+]]></Implementation>
+</Method>
+</Class>
+</Export>

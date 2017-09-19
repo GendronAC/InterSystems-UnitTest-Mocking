@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Tests.MockTests.CTestSuite">
+<Super>Tests.Fw.CExecuteTests</Super>
+<TimeCreated>64517,31571.807603</TimeCreated>
+
+<Method name="RunTests">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[   do ##super()
+]]></Implementation>
+</Method>
+</Class>
+</Export>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Tests.Fw.InterSystems.CUnitTestTransaction">
+<Description>
+*****************************************************
+
+This class comes from InterSystens, provided at the
+Global Summit 2015. It was not modified, except for 
+the packages name.
+
+*****************************************************
+This is a class for tests that change transactional data.
+It's run within a transaction which is rolled back at the end.</Description>
+<Super>Tests.Fw.InterSystems.CUnitTest</Super>
+<TimeCreated>62883,71852.951342</TimeCreated>
+
+<Method name="OnBeforeOneTest">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+ TStart
+ Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OnAfterOneTest">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+ TRollback
+ Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+</Export>

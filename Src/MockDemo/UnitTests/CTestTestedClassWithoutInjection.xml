@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="MockDemo.UnitTests.CTestTestedClassWithoutInjection">
+<Super>Tests.Fw.CUnitTestBase</Super>
+<TimeCreated>64377,73873.008945</TimeCreated>
+
+<UDLText name="T">
+<Content><![CDATA[
+// --- Run test ---
+
+]]></Content>
+</UDLText>
+
+<Property name="testedClass">
+<Type>MockDemo.CTestedClassWithoutInjection</Type>
+<Private>1</Private>
+</Property>
+
+<Method name="RunTests">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[   do ##super()
+]]></Implementation>
+</Method>
+
+<Method name="OnBeforeOneTest">
+<FormalSpec>testname:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+   set ..testedClass = ##class(MockDemo.CTestedClassWithoutInjection).%New()
+   quit $$$OK
+]]></Implementation>
+</Method>
+
+<UDLText name="T">
+<Content><![CDATA[
+// --- Tests for ComplexSumOperation ---
+
+]]></Content>
+</UDLText>
+
+<Method name="TestSumOperation">
+<Implementation><![CDATA[   do $$$AssertEquals(..testedClass.SumOperation(1, 2), 3)
+]]></Implementation>
+</Method>
+</Class>
+</Export>
