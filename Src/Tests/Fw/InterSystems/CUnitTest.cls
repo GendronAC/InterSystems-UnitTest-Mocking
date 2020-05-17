@@ -1,123 +1,78 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
-<Class name="Tests.Fw.InterSystems.CUnitTest">
-<Description>
-*****************************************************
+/// *****************************************************
+/// 
+/// This class comes from InterSystens, provided at the
+/// Global Summit 2015. It was not modified, except for 
+/// the packages name.
+/// 
+/// *****************************************************
+/// This is an abstract Requirement class.
+/// Requirement implement classic Cache's %UnitTest functionality.
+/// Also it may be runned through web browser.
+/// Each requirement may also be represented as a CSP page.
+/// After execution, requirement results are stored in ^UnitTest.Result global.
+Class Tests.Fw.InterSystems.CUnitTest Extends (%UnitTest.TestCase, %CSP.Page)
+{
 
-This class comes from InterSystens, provided at the
-Global Summit 2015. It was not modified, except for 
-the packages name.
+/// This Parameter is updated by Perforce
+Parameter SrcVer = "$Id: //trak/main/projects/PATHWAY/internal/cls/UnitTest/Abstract.xml#6 $";
 
-*****************************************************
-This is an abstract Requirement class.
-Requirement implement classic Cache's %UnitTest functionality.
-Also it may be runned through web browser.
-Each requirement may also be represented as a CSP page.
-After execution, requirement results are stored in ^UnitTest.Result global.</Description>
-<Super>%UnitTest.TestCase,%CSP.Page</Super>
-<TimeCreated>62883,70697.280223</TimeCreated>
+/// Your test title
+Parameter TITLE As %String;
 
-<Parameter name="SrcVer">
-<Description>
-This Parameter is updated by Perforce</Description>
-<Default>$Id: //trak/main/projects/PATHWAY/internal/cls/UnitTest/Abstract.xml#6 $</Default>
-</Parameter>
+/// default maximum global accesses for a single row based method call
+/// can overide per class or pur explicitly in each method call
+Parameter GlobalsMaxMethod = 100;
 
-<Parameter name="TITLE">
-<Description>
-Your test title</Description>
-<Type>%String</Type>
-</Parameter>
+/// default maximum global accesses for a query
+/// can overide per class or pur explicitly in each method call
+Parameter GlobalsMaxQuery = 1000;
 
-<Parameter name="GlobalsMaxMethod">
-<Description>
-default maximum global accesses for a single row based method call
-can overide per class or pur explicitly in each method call</Description>
-<Default>100</Default>
-</Parameter>
-
-<Parameter name="GlobalsMaxQuery">
-<Description>
-default maximum global accesses for a query
-can overide per class or pur explicitly in each method call</Description>
-<Default>1000</Default>
-</Parameter>
-
-<Method name="OnPage">
-<Description>
-This method is used to display a test page.</Description>
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<ServerOnly>1</ServerOnly>
-<Implementation><![CDATA[
+/// This method is used to display a test page.
+ClassMethod OnPage() As %Status [ ServerOnly = 1 ]
+{
    // 2016.1 : We need to clear %session lock before running tests in a
    // "web page mode" without errors.
    lock
    do ##class(Tests.Fw.InterSystems.CFormatter).Run(..%ClassName(1))
    Quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="Run">
-<Description>
-Run this specific test (in debug mode)</Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec>qualifiers:%String=""</FormalSpec>
-<ProcedureBlock>1</ProcedureBlock>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Run this specific test (in debug mode)
+ClassMethod Run(qualifiers As %String = "") As %Status [ ProcedureBlock = 1 ]
+{
    set sc=##class(Tests.Fw.InterSystems.CManager).RunTest(..%ClassName(1),"/recursive=0"_qualifiers)
    quit sc
-]]></Implementation>
-</Method>
+}
 
-<Method name="RunRecursive">
-<Description>
-Run this test and all its children</Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec>qualifiers:%String=""</FormalSpec>
-<ProcedureBlock>1</ProcedureBlock>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Run this test and all its children
+ClassMethod RunRecursive(qualifiers As %String = "") As %Status [ ProcedureBlock = 1 ]
+{
    set sc=##class(Tests.Fw.InterSystems.CManager).RunTest(..%ClassName(1),"/recursive=1"_qualifiers)
    quit sc
-]]></Implementation>
-</Method>
+}
 
-<Method name="Execute">
-<Description>
-Execute expression using current object's context</Description>
-<FormalSpec>expr</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
+/// Execute expression using current object's context
+Method Execute(expr) As %String
+{
    n %result
    x "s %result="_expr
    quit %result
-]]></Implementation>
-</Method>
+}
 
-<Method name="LogResult">
-<Description>
-Log execution HTML result. Now it is stored as a log message.</Description>
-<FormalSpec>result</FormalSpec>
-<Implementation><![CDATA[
+/// Log execution HTML result. Now it is stored as a log message.
+Method LogResult(result)
+{
    set oldDisplay=..Manager.Display
    set ..Manager.Display=""
    do ..LogMessage($g(result))
    set ..Manager.Display=oldDisplay
    quit
-]]></Implementation>
-</Method>
+}
 
-<Method name="GetLastResult">
-<Description>
-Get last test result instance id, dateTime, status, duration and HTML
-All this information is stored in ^UnitTest.Result</Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec><![CDATA[&dateTime,&status,&duration,&html,&suite]]></FormalSpec>
-<ProcedureBlock>1</ProcedureBlock>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
+/// Get last test result instance id, dateTime, status, duration and HTML
+/// All this information is stored in ^UnitTest.Result
+ClassMethod GetLastResult(ByRef dateTime, ByRef status, ByRef duration, ByRef html, ByRef suite) As %String [ ProcedureBlock = 1 ]
+{
    set (dateTime,status,duration,html,suite)=""
    set name=..%ClassName(1)
    &sql(select Duration, TestSuite->TestInstance, TestSuite->Name, TestSuite->TestInstance->DateTime
@@ -133,13 +88,10 @@ All this information is stored in ^UnitTest.Result</Description>
    set html=$lg($g(^UnitTest.Result(qInstance, qSuite, name, "TestRequirement",htmlIndex)),3)
    set suite=qSuite
    quit qInstance
-]]></Implementation>
-</Method>
+}
 
-<Method name="AssertEqualsViaMacro">
-<FormalSpec>autoquoted="",value1="",value2="",description=""</FormalSpec>
-<ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[
+Method AssertEqualsViaMacro(autoquoted = "", value1 = "", value2 = "", description = "") As %Boolean
+{
    Set manager=r%Manager
    Set description=$g(description)_": "_value1_"=="_value2_" in "_..ParseAutoQuoted(autoquoted,"equals")
    Set success=value1=value2
@@ -147,90 +99,64 @@ All this information is stored in ^UnitTest.Result</Description>
    If 'success&&'..Debug Quit $$$ERROR(5001,description)
    If 'success Break
    Quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="AssertNotEqualsViaMacro">
-<FormalSpec>autoquoted="",value1="",value2="",description=""</FormalSpec>
-<ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[
+Method AssertNotEqualsViaMacro(autoquoted = "", value1 = "", value2 = "", description = "") As %Boolean
+{
    s success=##super(autoquoted, value1, value2, description)
    i 'success quit $$$ERROR(5001,description_": "_value1_"=="_value2_" in "_autoquoted)
    q $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="AssertTrueViaMacro">
-<FormalSpec>autoquoted="",value="",description=""</FormalSpec>
-<ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[
+Method AssertTrueViaMacro(autoquoted = "", value = "", description = "") As %Boolean
+{
    s success=##super(autoquoted, value, description)
    i 'success quit $$$ERROR(5001,description_": "_value_"!=TRUE in "_autoquoted)
    q $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="AssertNotTrueViaMacro">
-<FormalSpec>autoquoted="",value="",description=""</FormalSpec>
-<ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[
+Method AssertNotTrueViaMacro(autoquoted = "", value = "", description = "") As %Boolean
+{
    s success=##super(autoquoted, value, description)
    i 'success quit $$$ERROR(5001,description_": "_value_"== TRUE in "_autoquoted)
    q $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="AssertStatusOKViaMacro">
-<FormalSpec>autoquoted="",status="",description=""</FormalSpec>
-<ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[
+Method AssertStatusOKViaMacro(autoquoted = "", status = "", description = "") As %Boolean
+{
    s success=##super(autoquoted, status, .description)
    i 'success quit $$$ERROR(5001,description_" in "_autoquoted)
    q $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="AssertStatusNotOKViaMacro">
-<FormalSpec>autoquoted="",status="",description=""</FormalSpec>
-<ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[
+Method AssertStatusNotOKViaMacro(autoquoted = "", status = "", description = "") As %Boolean
+{
    s success=##super(autoquoted, status, description)
    i 'success quit $$$ERROR(5001,description_" IS OK in "_autoquoted)
    q $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="AssertStatusEqualsViaMacro">
-<FormalSpec>autoquoted="",value1="",value2="",description=""</FormalSpec>
-<ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[
+Method AssertStatusEqualsViaMacro(autoquoted = "", value1 = "", value2 = "", description = "") As %Boolean
+{
    s success=##super(autoquoted, value1, value2, description)
    i 'success quit $$$ERROR(5001,description_": STATUS NOT EQUAL in "_autoquoted)
    q $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="AssertFilesSameViaMacro">
-<FormalSpec>autoquoted,file1,file2,description</FormalSpec>
-<ReturnType>%Boolean</ReturnType>
-<Implementation><![CDATA[
+Method AssertFilesSameViaMacro(autoquoted, file1, file2, description) As %Boolean
+{
    s success=##super(autoquoted, file1, file2, description)
    i 'success quit $$$ERROR(5001,description_": "_file1_"!="_file2_" in "_autoquoted)
    q $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="StringEquals">
-<Description>
-Run a class method and:
-1. compare the result against an expected value, this can be a single value "A" or a list $lb("A","B","C")
-2. compare the global count against an expected maximum
-itmid can uniquely identify a specific test in list within a test method e.g. #1.1,   #1.2  etc
-output informative information about the code that was run, the actual value and the expected value</Description>
-<Final>1</Final>
-<FormalSpec>itmid,expectedvalue,globalsmax,classname,methodname,args...</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Run a class method and:
+/// 1. compare the result against an expected value, this can be a single value "A" or a list $lb("A","B","C")
+/// 2. compare the global count against an expected maximum
+/// itmid can uniquely identify a specific test in list within a test method e.g. #1.1,   #1.2  etc
+/// output informative information about the code that was run, the actual value and the expected value
+Method StringEquals(itmid, expectedvalue, globalsmax, classname, methodname, args...) As %Status [ Final ]
+{
    If +$g(globalsmax)=0 set globalsmax=..#GlobalsMaxMethod
    Set tResult="-99999"
    
@@ -273,21 +199,16 @@ output informative information about the code that was run, the actual value and
 
    //less than or equals
    Do $$$AssertTrue(pGlobals'>globalsmax,"##Class("_classname_")."_methodname_"("_argsdisplay_") ["_itmid_"] Global Count: '"_pGlobals_"' Expected: '<="_globalsmax_"'")
-]]></Implementation>
-</Method>
+}
 
-<Method name="QueryEquals">
-<Description>
-Run a class query and:
-1. compare the result against an expected value, this is a list of lists (one list per expected row)
-  the comaprison will only check up to the first five rows returned
-2. compare the global count against an expected maximum
-itmid can uniquely identify a specific test in list within a test method e.g. #1.1,   #1.2  etc
-output informative information about the code that was run, the actual value and the expected value</Description>
-<Final>1</Final>
-<FormalSpec>itmid,expectedvalue,globalsmax,classname,queryname,args...</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Run a class query and:
+/// 1. compare the result against an expected value, this is a list of lists (one list per expected row)
+///   the comaprison will only check up to the first five rows returned
+/// 2. compare the global count against an expected maximum
+/// itmid can uniquely identify a specific test in list within a test method e.g. #1.1,   #1.2  etc
+/// output informative information about the code that was run, the actual value and the expected value
+Method QueryEquals(itmid, expectedvalue, globalsmax, classname, queryname, args...) As %Status [ Final ]
+{
    If +$g(globalsmax)=0 set globalsmax=..#GlobalsMaxQuery
    Set tResult=$lb("-99999")
    try {
@@ -343,24 +264,17 @@ output informative information about the code that was run, the actual value and
 
    //less than or equals
    Do $$$AssertTrue(pGlobals'>globalsmax,"##Class("_classname_")."_queryname_"("_argsdisplay_") ["_itmid_"] Global Count: '"_pGlobals_"' Expected: '<="_globalsmax_"'")
-]]></Implementation>
-</Method>
+}
 
-<Method name="ListOfListToDisplay">
-<Description>
-output formatter to display a List of lists</Description>
-<Final>1</Final>
-<ClassMethod>1</ClassMethod>
-<FormalSpec>listoflist</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
+/// output formatter to display a List of lists
+ClassMethod ListOfListToDisplay(listoflist) As %String [ Final ]
+{
    if '$listvalid(listoflist) Quit listoflist
    Set tResult=""
    for j=1:1:$ll(listoflist) {
       Set tResult=tResult_$s(tResult'="":",",1:"")_"$lb("""_$lts($lg(listoflist,j),""",""")_""")"
    }
    Quit $s(tResult'="":"$lb("_tResult_")",1:tResult)
-]]></Implementation>
-</Method>
-</Class>
-</Export>
+}
+
+}

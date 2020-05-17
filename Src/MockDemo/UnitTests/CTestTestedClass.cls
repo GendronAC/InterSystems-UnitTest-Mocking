@@ -1,51 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
-<Class name="MockDemo.UnitTests.CTestTestedClass">
-<Super>Tests.Fw.CUnitTestBase</Super>
-<TimeCreated>64377,70711.892343</TimeCreated>
+Class MockDemo.UnitTests.CTestTestedClass Extends Tests.Fw.CUnitTestBase
+{
 
-<Property name="mathService">
-<Type>MockDemo.MathService</Type>
-<Private>1</Private>
-</Property>
+Property mathService As MockDemo.MathService [ Private ];
 
-<Property name="testedClass">
-<Type>MockDemo.CTestedClass</Type>
-<Private>1</Private>
-</Property>
+Property testedClass As MockDemo.CTestedClass [ Private ];
 
-<UDLText name="T">
-<Content><![CDATA[
 // --- Run test ---
 
-]]></Content>
-</UDLText>
+ClassMethod RunTests()
+{
+   do ##super()
+}
 
-<Method name="RunTests">
-<ClassMethod>1</ClassMethod>
-<Implementation><![CDATA[   do ##super()
-]]></Implementation>
-</Method>
-
-<Method name="OnBeforeOneTest">
-<FormalSpec>testname:%String</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+Method OnBeforeOneTest(testname As %String) As %Status
+{
    set ..mathService = ..CreateMock()
    set ..testedClass = ##class(MockDemo.CTestedClass).%New(..mathService)
    quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<UDLText name="T">
-<Content><![CDATA[
 // --- Tests for SumOperation ---
 
-]]></Content>
-</UDLText>
-
-<Method name="TestSumOperation">
-<Implementation><![CDATA[
+Method TestSumOperation()
+{
    do ..Expect(..mathService.Add(1, 2)).AndReturn(3).Times(3)
    do ..ReplayAllMocks()
    
@@ -54,35 +31,26 @@
    do $$$AssertEquals(..testedClass.SumOperation(1, 2), 3)
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<Method name="TestSumOperationParameterError">
-<Description>
-This tests fails only because it is intended to for demo purpose.</Description>
-<Implementation><![CDATA[
+/// This tests fails only because it is intended to for demo purpose.
+Method TestSumOperationParameterError()
+{
    do ..Expect(..mathService.Add(1, 2)).AndReturn(3)
    do ..ReplayAllMocks()
    
    do $$$AssertEquals(..testedClass.SumOperation(1, 3), 3)
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<UDLText name="T">
-<Content><![CDATA[
 // --- Tests for ComplexOperation ---
 
-]]></Content>
-</UDLText>
-
-<Method name="TestComplexOperationDivide">
-<Description>
-The mathService.Divide() method isn't even implemented. Yet this test is able
-to verify that the status can be properly returned when passed by reference.
-The result of 6/2 doesn't even count. The mock is told to return "50".</Description>
-<Implementation><![CDATA[
+/// The mathService.Divide() method isn't even implemented. Yet this test is able
+/// to verify that the status can be properly returned when passed by reference.
+/// The result of 6/2 doesn't even count. The mock is told to return "50".
+Method TestComplexOperationDivide()
+{
    #Dim expectedStatus As %Status = $$$OK
    do ..Expect(..mathService.GreaterThan(6, 2)).AndReturn(1)
    do ..Expect(..mathService.Divide(6, 2, ..ByRefParam($$$OK, expectedStatus))).AndReturn(50)
@@ -93,11 +61,10 @@ The result of 6/2 doesn't even count. The mock is told to return "50".</Descript
    do $$$AssertStatusOK(status)
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<Method name="TestComplexOperationMultiply">
-<Implementation><![CDATA[
+Method TestComplexOperationMultiply()
+{
    #Dim expectedStatus As %Status = $$$OK
    do ..Expect(..mathService.GreaterThan(6, 2)).AndReturn(0) // <-- Does not even have to be real.
    do ..Expect(..mathService.Multiply(6, 2, ..ByRefParam($$$OK, expectedStatus))).AndReturn(-25)
@@ -108,11 +75,10 @@ The result of 6/2 doesn't even count. The mock is told to return "50".</Descript
    do $$$AssertStatusOK(status)
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<Method name="TestComplexOperationErrorDivisionByZeroError">
-<Implementation><![CDATA[
+Method TestComplexOperationErrorDivisionByZeroError()
+{
    #Dim expectedStatus As %Status = $$$ERROR("Divide by zero")
    do ..Expect(..mathService.GreaterThan(6, 0)).AndReturn(1)
    do ..Expect(..mathService.Divide(6, 0, ..ByRefParam($$$OK, expectedStatus))).AndReturn(-1)
@@ -123,13 +89,11 @@ The result of 6/2 doesn't even count. The mock is told to return "50".</Descript
    do $$$AssertStatusNotOK(status)
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<Method name="TestComplexOperationUnconsumedError">
-<Description>
-This tests fails on purpose</Description>
-<Implementation><![CDATA[
+/// This tests fails on purpose
+Method TestComplexOperationUnconsumedError()
+{
    #Dim expectedStatus As %Status = $$$ERROR("Divide by zero")
    do ..Expect(..mathService.Divide(6, 2, ..ByRefParam($$$OK, expectedStatus))).AndReturn(50)
    do ..ReplayAllMocks()
@@ -137,13 +101,11 @@ This tests fails on purpose</Description>
    // NOTHING
       
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<Method name="TestComplexOperationUnexpectedCallError">
-<Description>
-This tests fails on purpose</Description>
-<Implementation><![CDATA[
+/// This tests fails on purpose
+Method TestComplexOperationUnexpectedCallError()
+{
    // NO EXPECT
 
    do ..ReplayAllMocks()
@@ -153,18 +115,12 @@ This tests fails on purpose</Description>
    do $$$AssertStatusNotOK(status)
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<UDLText name="T">
-<Content><![CDATA[
 // --- Tests for FetchSQLQueryInformation ---
 
-]]></Content>
-</UDLText>
-
-<Method name="TestFetchSQLQueryInformation">
-<Implementation><![CDATA[
+Method TestFetchSQLQueryInformation()
+{
    do ..SetMockResultSet("MockDemo.CTestedClass:MyQuery", 
                          ..%ClassName(1) _ "||ResultSetMockedDemo")
    do ..ReplayAllMocks()
@@ -172,41 +128,32 @@ This tests fails on purpose</Description>
    do $$$AssertEquals(..testedClass.FetchSQLQueryInformation("C"), "A+C")
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<XData name="ResultSetMockedDemo">
-<Data><![CDATA[
+XData ResultSetMockedDemo
+{
 <Query>
 <ColumnsNames>,ResultA,ResultB</ColumnsNames>
 <Row>A,C</Row>
 <Row>A,D</Row>
 </Query>
-]]></Data>
-</XData>
+}
 
-<UDLText name="T">
-<Content><![CDATA[
 // --- Tests for FetchSQLPrepareInformation ---
 
-]]></Content>
-</UDLText>
-
-<Method name="TestFetchSQLPrepareInformation">
-<Implementation><![CDATA[
+Method TestFetchSQLPrepareInformation()
+{
    do ..SetMockResultSet("", 
                          ..%ClassName(1) _ "||ResultSetMockedDemo")
    do ..ReplayAllMocks()
    do $$$AssertEquals(..testedClass.FetchSQLPrepareInformation("C"), "|A+C|A+D")
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<Method name="TestFetchSQLPrepareInformationUnconsumedError">
-<Description>
-This test fails on purpose to show unconsumed SQL Queries</Description>
-<Implementation><![CDATA[
+/// This test fails on purpose to show unconsumed SQL Queries
+Method TestFetchSQLPrepareInformationUnconsumedError()
+{
    do ..SetMockResultSet("", 
                          ..%ClassName(1) _ "||ResultSetMockedDemo")
    do ..ReplayAllMocks()
@@ -214,13 +161,11 @@ This test fails on purpose to show unconsumed SQL Queries</Description>
    // NOTHING
 
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<Method name="TestPopulateObjectProperties">
-<Description>
-This tests validates Object passed in mocks</Description>
-<Implementation><![CDATA[
+/// This tests validates Object passed in mocks
+Method TestPopulateObjectProperties()
+{
    // Prepare expected test parameters
    set expectedHl7Message = ##class(EnsLib.HL7.Message).%New()
    set expectedHl7Message.DocType = "2.6:ADT_A01"
@@ -244,7 +189,6 @@ This tests validates Object passed in mocks</Description>
    do $$$AssertTrue(hl7Message.GetValueAt("MSH:4") = "Content")
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
-</Class>
-</Export>
+}
+
+}

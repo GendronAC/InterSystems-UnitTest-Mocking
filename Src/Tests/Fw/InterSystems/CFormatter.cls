@@ -1,27 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
-<Class name="Tests.Fw.InterSystems.CFormatter">
-<Description>
-*****************************************************
+Include %occInclude
 
-This class comes from InterSystens, provided at the
-Global Summit 2015. It was not modified, except for 
-the packages name.
+/// *****************************************************
+/// 
+/// This class comes from InterSystens, provided at the
+/// Global Summit 2015. It was not modified, except for 
+/// the packages name.
+/// 
+/// *****************************************************
+/// This is a Requirement Formatter. Given a requirement class name, it displays a nice page for it.
+Class Tests.Fw.InterSystems.CFormatter [ Abstract ]
+{
 
-*****************************************************
-This is a Requirement Formatter. Given a requirement class name, it displays a nice page for it.</Description>
-<Abstract>1</Abstract>
-<IncludeCode>%occInclude</IncludeCode>
-<TimeCreated>62883,70726.805754</TimeCreated>
-
-<Method name="Run">
-<Description>
-This method is used to display a page.</Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pClassName:%String</FormalSpec>
-<PublicList>Result</PublicList>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// This method is used to display a page.
+ClassMethod Run(pClassName As %String) As %Status [ PublicList = Result ]
+{
    &html<<html>
       <head>>
    do ..DisplayStyles()
@@ -72,26 +64,18 @@ This method is used to display a page.</Description>
    do ..DisplayChildren(pClassName)
    &html<</body></html>>
    Quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="DisplayLastResult">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pClassName</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-   set result=$zobjclassmethod(pClassName,"GetLastResult",.dateTime,.status,.duration,.html)
+ClassMethod DisplayLastResult(pClassName) As %Status
+{
+   set result=$ClassMethod(pClassName,"GetLastResult",.dateTime,.status,.duration,.html)
    if result="" quit $$$OK
    w html,!
    quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="DisplayAsPage">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pClassName,pShowLast=0</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+ClassMethod DisplayAsPage(pClassName, pShowLast = 0) As %Status
+{
    write ##class(%Dictionary.CompiledClass).%OpenId(pClassName).Description
    if pShowLast set instance=$zobjclassmethod(pClassName,"GetLastResult",.dateTime,.status,.duration,.html,.suite)
    set method=""
@@ -140,14 +124,10 @@ This method is used to display a page.</Description>
       }
       write "</div>"
    }
-]]></Implementation>
-</Method>
+}
 
-<Method name="DisplayMenuBar">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pClassName</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+ClassMethod DisplayMenuBar(pClassName) As %Status
+{
    s result=$zobjclassmethod(pClassName,"GetLastResult",.dateTime,.status,.duration,.html)
    s class=$s(status="":"Skipped",status=1:"Passed",1:"Failed")
    w "<p class=""status"_class_""">"
@@ -167,14 +147,10 @@ This method is used to display a page.</Description>
    w " <a class=""abutton"" href=""?results"">Show last result</a>"
    w "</p>",!
    q $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="DisplayPath">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pClassName</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+ClassMethod DisplayPath(pClassName) As %Status
+{
    set path=""
    f i=1:1:$l(pClassName,".")-1 {
       s parentName=$p(pClassName,".",1,i)
@@ -185,28 +161,19 @@ This method is used to display a page.</Description>
    s $e(path)=""
    w path
    quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="GetTitle">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pClassName</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
+ClassMethod GetTitle(pClassName) As %String
+{
    set title=##class(%Dictionary.CompiledParameter).%OpenId(pClassName_"||TITLE")
    if title set title=title.Default
    if title="" set title=pClassName
    quit title
-]]></Implementation>
-</Method>
+}
 
-<Method name="DisplayChildren">
-<Description>
-Display children</Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pClassName</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Display children
+ClassMethod DisplayChildren(pClassName) As %Status
+{
    set pointCount=$l(pClassName,".")
    set child=pClassName_"."
    set childStr=""
@@ -218,15 +185,11 @@ Display children</Description>
    }
    i childStr'="" w "<h2>More details: </h2>"_childStr
    quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="DisplayStyles">
-<Description>
-Output CSS stules for page</Description>
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Output CSS stules for page
+ClassMethod DisplayStyles() As %Status
+{
    &html<
       <style type="text/css">
       body {
@@ -355,15 +318,11 @@ Output CSS stules for page</Description>
          background-color: #E0E0E0;
       }
       </style>>
-]]></Implementation>
-</Method>
+}
 
-<Method name="DisplayJS">
-<Description>
-Output CSS stules for page</Description>
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Output CSS stules for page
+ClassMethod DisplayJS() As %Status
+{
    &html<
       <script language="JavaScript">
       function show(element,id) {
@@ -372,14 +331,10 @@ Output CSS stules for page</Description>
          return false;
       }
       </script>>
-]]></Implementation>
-</Method>
+}
 
-<Method name="WriteXmlReport">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pFileName:%String,pResultIndex:%String</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+ClassMethod WriteXmlReport(pFileName As %String, pResultIndex As %String) As %Status
+{
    if $g(pResultIndex)="" s pResultIndex=$o(^UnitTest.Result(""),-1)
    set File=##class(%File).%New(pFileName)
    do File.Open("WSN")
@@ -425,7 +380,6 @@ Output CSS stules for page</Description>
    }
    do File.WriteLine("</testsuites>")
    quit $$$OK
-]]></Implementation>
-</Method>
-</Class>
-</Export>
+}
+
+}

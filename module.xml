@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+  <Document name="mocking-framework.ZPM">
+    <Module>
+      <Name>mocking-framework</Name>
+      <Version>1.0.0</Version>
+      <Packaging>module</Packaging>
+      <SourcesRoot>src</SourcesRoot>
+      <Resource Name="chs.PKG"/>
+      <Resource Name="Fw.PKG"/>
+      <Resource Name="MockDemo.PKG"/>
+      <Resource Name="Tests.PKG"/>
+	  </Module>
+  </Document>
+</Export>
