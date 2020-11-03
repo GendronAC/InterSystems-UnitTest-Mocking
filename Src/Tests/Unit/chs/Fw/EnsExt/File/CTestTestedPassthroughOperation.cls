@@ -1,45 +1,30 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
-<Class name="Tests.Unit.chs.Fw.EnsExt.File.CTestTestedPassthroughOperation">
-<IncludeCode>Ensemble</IncludeCode>
-<Super>Tests.Fw.CUnitTestBase</Super>
-<TimeCreated>64194,49028.837417</TimeCreated>
+Include Ensemble
 
-<Property name="operation">
-<Type>EnsLib.File.PassthroughOperation</Type>
-</Property>
+Class Tests.Unit.chs.Fw.EnsExt.File.CTestTestedPassthroughOperation Extends Tests.Fw.CUnitTestBase
+{
 
-<Property name="Adapter">
-<Type>EnsLib.File.OutboundAdapter</Type>
-</Property>
+Property operation As EnsLib.File.PassthroughOperation;
 
-<Method name="RunTests">
-<ClassMethod>1</ClassMethod>
-<Implementation><![CDATA[   do ##super()
-]]></Implementation>
-</Method>
+Property Adapter As EnsLib.File.OutboundAdapter;
 
-<Method name="OnBeforeOneTest">
-<FormalSpec>testname:%String</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+ClassMethod RunTests()
+{
+   do ##super()
+}
+
+Method OnBeforeOneTest(testname As %String) As %Status
+{
    set ..Adapter = ..CreateMock()
    set ..operation = ##class(chs.Fw.EnsExt.File.CTestedPassthroughOperation).%New("UnitTest", ..Adapter)
    set ..operation.Filename = "%f_%Q"
    
    quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<UDLText name="T">
-<Content><![CDATA[
 // -- OnMessage tests --
 
-]]></Content>
-</UDLText>
-
-<Method name="TestOnMessage">
-<Implementation><![CDATA[
+Method TestOnMessage()
+{
    set stream = ##class(%Stream.GlobalCharacter).%New()
    do stream.Write("Test")
    set ensStream = ##class(Ens.StreamContainer).%New(stream)
@@ -53,11 +38,10 @@
    do $$$AssertStatusOK(..operation.OnMessage(ensStream, .out))
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
+}
 
-<Method name="TestOnMessageFailure">
-<Implementation><![CDATA[
+Method TestOnMessageFailure()
+{
    set stream = ##class(%Stream.GlobalCharacter).%New()
    do stream.Write("Test")
    set ensStream = ##class(Ens.StreamContainer).%New(stream)
@@ -71,7 +55,6 @@
    do $$$AssertStatusNotOK(..operation.OnMessage(ensStream, .out))
    
    do ..VerifyAllMocks()
-]]></Implementation>
-</Method>
-</Class>
-</Export>
+}
+
+}

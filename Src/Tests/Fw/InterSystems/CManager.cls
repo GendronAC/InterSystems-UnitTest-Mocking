@@ -1,43 +1,27 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
-<Class name="Tests.Fw.InterSystems.CManager">
-<Description>
-*****************************************************
+/// *****************************************************
+/// 
+/// This class comes from InterSystens, provided at the
+/// Global Summit 2015. It was not modified, except for 
+/// the packages name.
+/// 
+/// *****************************************************
+/// Sightly changed %UnitTest manager.
+/// The main goal is to use use class definitions instead of filesystem for testing
+Class Tests.Fw.InterSystems.CManager Extends %UnitTest.Manager
+{
 
-This class comes from InterSystens, provided at the
-Global Summit 2015. It was not modified, except for 
-the packages name.
+Property bSQLTransactionEnabled As %Boolean [ InitialExpression = 1 ];
 
-*****************************************************
-Sightly changed %UnitTest manager.
-The main goal is to use use class definitions instead of filesystem for testing</Description>
-<Super>%UnitTest.Manager</Super>
-<TimeCreated>62883,71343.008696</TimeCreated>
-
-<Property name="bSQLTransactionEnabled">
-<Type>%Boolean</Type>
-<InitialExpression>1</InitialExpression>
-</Property>
-
-<UDLText name="T">
-<Content><![CDATA[
 /*-------------------------------------------------------------------------------------------------------
 // Modification to be able not to show the ASSERT that passed.
 // The modification is simply to add the bShowSuccessfulAssert property, override LogAssert method 
 // and change the last else into an Elseif (..bShowSuccessfulAssert = 1).
 // The rest of the code was simply reformatted for better readability.
 //-------------------------------------------------------------------------------------------------------*/
-]]></Content>
-</UDLText>
+Property bShowSuccessfulAssert As %Boolean [ InitialExpression = 1 ];
 
-<Property name="bShowSuccessfulAssert">
-<Type>%Boolean</Type>
-<InitialExpression>1</InitialExpression>
-</Property>
-
-<Method name="LogAssert">
-<FormalSpec>success,action,description,extra</FormalSpec>
-<Implementation><![CDATA[
+Method LogAssert(success, action, description, extra)
+{
    Set testsuite=i%TheStack(i%TheStack, "suite")
    Set testcase=i%TheStack(i%TheStack, "case")
    Set testmethod = i%TheStack(i%TheStack, "method")
@@ -56,24 +40,14 @@ The main goal is to use use class definitions instead of filesystem for testing<
    {
       Do ..PrintLine(line,4)
    }
-]]></Implementation>
-</Method>
+}
 
-<UDLText name="T">
-<Content><![CDATA[
 /*-------------------------------------------------------------------------------------------------------
 // End modification
 //-------------------------------------------------------------------------------------------------------*/
-]]></Content>
-</UDLText>
-
-<Method name="RunTestSuites">
-<Description><![CDATA[
-Same as <b>RunTest</b>, but requires three arguments.  These arguments can be null, as ("","","").]]></Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec>testspec:%String="",qspec:%String="",userparam:%String=""</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+/// Same as <b>RunTest</b>, but requires three arguments.  These arguments can be null, as ("","","").
+ClassMethod RunTestSuites(testspec As %String = "", qspec As %String = "", userparam As %String = "") As %Status
+{
    Set manager=..%New()
    If manager=$$$NULLOREF Quit %objlasterror
    
@@ -110,12 +84,10 @@ Same as <b>RunTest</b>, but requires three arguments.  These arguments can be nu
    If $$$qualifierGetValue(qstruct,"run") Do manager.PrintURL()
    
    Quit $$$OK
-]]></Implementation>
-</Method>
+}
 
-<Method name="RunOneTestSuite">
-<FormalSpec>suite:%String,tests:%String,testspec:%String,qstruct</FormalSpec>
-<Implementation><![CDATA[
+Method RunOneTestSuite(suite As %String, tests As %String, testspec As %String, qstruct)
+{
    Set testcase=$p(testspec,":",2)
    Set testmethod=$p(testspec,":",3)
    Do ..PrintLine("===============================================================================",0)
@@ -139,31 +111,23 @@ Same as <b>RunTest</b>, but requires three arguments.  These arguments can be nu
    Do ..PrintLine("",0)
    
    Quit
-]]></Implementation>
-</Method>
+}
 
-<Method name="RunOneTestCase">
-<FormalSpec>suite:%String,class:%String,test:%String=""</FormalSpec>
-<Implementation><![CDATA[
+Method RunOneTestCase(suite As %String, class As %String, test As %String = "")
+{
    set ..bSQLTransactionEnabled = $Parameter(class, "bSQLTransactionEnabled")
    TStart:(..bSQLTransactionEnabled)
    do ##super(suite, class, test)
-]]></Implementation>
-</Method>
+}
 
-<Method name="Cleanup">
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+Method Cleanup() As %Status
+{
    TRollback:(..bSQLTransactionEnabled)
    quit ##super()
-]]></Implementation>
-</Method>
+}
 
-<Method name="OutputResultsXml">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pFileName:%String</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+ClassMethod OutputResultsXml(pFileName As %String) As %Status
+{
    set File=##class(%File).%New(pFileName)
    set i=$o(^UnitTest.Result(""),-1)
    if i="" quit $$$OK // no results
@@ -285,7 +249,6 @@ Same as <b>RunTest</b>, but requires three arguments.  These arguments can be nu
    do File.Close()
    kill ^||TMP
    quit $$$OK
-]]></Implementation>
-</Method>
-</Class>
-</Export>
+}
+
+}
