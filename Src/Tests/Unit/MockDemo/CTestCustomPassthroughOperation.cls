@@ -1,6 +1,6 @@
 Include Ensemble
 
-Class Tests.Unit.chs.Fw.EnsExt.File.CTestTestedPassthroughOperation Extends Tests.Fw.CUnitTestBase
+Class Tests.Unit.MockDemo.CTestCustomPassthroughOperation Extends Tests.Fw.CUnitTestBase
 {
 
 Property operation As EnsLib.File.PassthroughOperation;
@@ -15,7 +15,7 @@ ClassMethod RunTests()
 Method OnBeforeOneTest(testname As %String) As %Status
 {
    set ..Adapter = ..CreateMock()
-   set ..operation = ##class(chs.Fw.EnsExt.File.CTestedPassthroughOperation).%New("UnitTest", ..Adapter)
+   set ..operation = ##class(MockDemo.CCustomPassthroughOperation).%New("UnitTest", ..Adapter)
    set ..operation.Filename = "%f_%Q"
    
    quit $$$OK

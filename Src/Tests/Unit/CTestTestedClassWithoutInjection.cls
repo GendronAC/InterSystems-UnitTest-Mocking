@@ -1,4 +1,4 @@
-Class MockDemo.UnitTests.CTestTestedClassWithoutInjection Extends Tests.Fw.CUnitTestBase
+Class Tests.Unit.CTestTestedClassWithoutInjection Extends Tests.Fw.CUnitTestBase
 {
 
 // --- Run test ---

@@ -1,4 +1,4 @@
-Class chs.Fw.EnsExt.File.CTestedPassthroughOperation Extends EnsLib.File.PassthroughOperation
+Class MockDemo.CCustomPassthroughOperation Extends EnsLib.File.PassthroughOperation
 {
 
 /// initialize Business Host object
