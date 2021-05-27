@@ -44,7 +44,7 @@ Property lstOfCreatedClass As %ListOfDataTypes [ Private ];
 /// This methods creates a mock object extending CMockBase and the provided interface and returns it.
 /// strInterfaceName: Name of the interface with the package information.
 /// Usage example: set mock = ..CreateMock()
-Method CreateMock(strInterfaceName As %String = "") As Tests.Fw.Mock.CMockBase
+Method CreateMock(strInterfaceName As %String = "", constructorParameters...) As Tests.Fw.Mock.CMockBase
 {
    #dim returnClass = $$$NULLOREF
    if (strInterfaceName '= "")
@@ -55,13 +55,23 @@ Method CreateMock(strInterfaceName As %String = "") As Tests.Fw.Mock.CMockBase
       if ($$$ISOK(..CreateClass(strNewClassName, strExtends)))
       {
          do ..lstOfCreatedClass.Insert(strNewClassName)
-         set returnClass = $ClassMethod(strNewClassName, "%New", $THIS)
+
+         #Dim nNbConstructorArgs As %Integer = $Get(constructorParameters, 0)
+
+         set returnClass = $Case(nNbConstructorArgs, 0 : $ClassMethod(strNewClassName, "%New"),
+                                                     1 : $ClassMethod(strNewClassName, "%New", $get(constructorParameters(1))),
+                                                     2 : $ClassMethod(strNewClassName, "%New", $get(constructorParameters(1)), $get(constructorParameters(2))),
+                                                     3 : $ClassMethod(strNewClassName, "%New", $get(constructorParameters(1)), $get(constructorParameters(2)), $get(constructorParameters(3))),
+                                                       : $$$NULLOREF)
       }
    }
    else
    {
-      set returnClass = ##class(Tests.Fw.Mock.CMockBase).%New($THIS)
+      set returnClass = ##class(Tests.Fw.Mock.CMockBase).%New()
    }
+
+   do returnClass.SetMockManager($This)
+
    quit returnClass
 }
 
@@ -87,12 +97,12 @@ Method ReplayAllMocks()
 Method VerifyAllMocks()
 {
    do $$$AssertEquals(..lstExpectation.Count(), 0, "Expectation list not empty")
-   
+
    #Dim strFirstUnconsumedQuery As %String = ""
    do $$$AssertNotTrue(..IsUnconsumedResultSetLeft(.strFirstUnconsumedQuery), "Some defined ResultSet were not consumed (" _ strFirstUnconsumedQuery _ ")")
-   
+
    set ..bInReplayMode = 0
-   
+
    do ..CleanUp()
 }
 
@@ -120,6 +130,12 @@ Method IsNotEqual(objectorDatatype) As Tests.Fw.Mock.CIsNotEqualParamValidator
    quit ##class(Tests.Fw.Mock.CIsNotEqualParamValidator).%New(objectorDatatype)
 }
 
+/// Creates a CContainsParamValidator. Use this to validate that a given string contains part of a string.
+Method Contains(stringToLookFor, bCaseInsensitive As %Boolean = 0) As Tests.Fw.Mock.CContainsParamValidator
+{
+   quit ##class(Tests.Fw.Mock.CContainsParamValidator).%New(stringToLookFor, bCaseInsensitive)
+}
+
 Method UseCustomFunctionValidation(object As %RegisteredObject, strMethodName As %String) As Tests.Fw.Mock.CCustomFunctionParamValidator
 {
    quit ##class(Tests.Fw.Mock.CCustomFunctionParamValidator).%New(object, strMethodName)
@@ -139,20 +155,20 @@ Method ByRefParam(expectedValue, replaceByValue) As Tests.Fw.Mock.CMockByRefPara
 ***********************************************/
 Method CleanUp() [ Internal ]
 {
-   
+
    #dim i As %Integer = 0
    for i = 1:1:..lstOfCreatedClass.Count()
    {
       do ..DeleteClass(..lstOfCreatedClass.GetAt(i))
    }
    do ..lstOfCreatedClass.Clear()
-   
+
    // Also cleanup every defined ResultSet Overrides
    kill ^||CResultSetTools
    kill ^CResultSetTools
 
    set ..bInReplayMode = 0
-   
+
    do $$$AssertEquals(..lstExpectation.Count(), 0, "Expectation list not empty")
    do ..lstExpectation.Clear()
 }
@@ -166,20 +182,20 @@ Method CreateExpectation(instance As Tests.Fw.Mock.CMockBase, strMethodName As %
 Method MethodCalled(instance As Tests.Fw.Mock.CMockBase, strMethodName As %String, ByRef lstParams As %ListOfDataTypes) [ Internal ]
 {
    #dim returnValue = $$$NULLOREF
-   
+
    #dim expectation As Tests.Fw.Mock.CExpectation = ..GetNextExpectation(instance, strMethodName)
    if (expectation '= $$$NULLOREF)
    {
       if ($$$ISOK(..ValidateMethodCalled(expectation, instance, strMethodName, lstParams)))
       {
          do ..DecrementExpectationTimes(expectation)
-         
+
          do ..ProcessParameters(expectation, .lstParams, strMethodName)
 
-         set returnValue = expectation.GetReturnValue()            
+         set returnValue = expectation.GetReturnValue()
       }
    }
-   
+
    quit returnValue
 }
 
@@ -192,8 +208,22 @@ Method IsInReplayMode() As %Boolean [ Internal ]
 Method SetMockResultSet(strQueryName As %String, xDataResultSetName As %String, bPrivateProcessGlobal As %Boolean = 1)
 {
    #Dim nextUnusedIndex As %String = ""
+
+   // Verify that the query columns and Xdata columns are identical.
+   if ( strQueryName = "")
+   {
+      do $$$LogMessage("SetMockResultSet : Query is empty")
+   }
+   elseif (xDataResultSetName = "")
+   {
+      do $$$LogMessage("SetMockResultSet : XData is empty")
+   }
+   else
+   {
+      do $$$AssertTrue(##class(Tests.Fw.Mock.CMockResultSet).CompareColumns(strQueryName, xDataResultSetName))
+   }
    
-   // NOTE : Using the ^|| global prefix creates a "process private global", 
+   // NOTE : Using the ^|| global prefix creates a "process private global",
    //        automatically deleted when the process execution ends.
    if (bPrivateProcessGlobal)
    {
@@ -210,8 +240,8 @@ Method SetMockResultSet(strQueryName As %String, xDataResultSetName As %String, 
 ClassMethod GetMockResultSet(strQueryName As %String = "") As %ResultSet
 {
    #Dim rs As %ResultSet = $$$NULLOREF
-   
-   try 
+
+   try
    {
       #Dim nextUnconsumedGlobal As %String = ""
       #Dim xDataResultSetName As %String = ""
@@ -222,7 +252,7 @@ ClassMethod GetMockResultSet(strQueryName As %String = "") As %ResultSet
          set nextUnconsumedGlobal = $Order(^||CResultSetTools("_" _ strQueryName, ""))
          set xDataResultSetName = ^||CResultSetTools("_" _ strQueryName, nextUnconsumedGlobal)
          set:(xDataResultSetName '= "") rs = ##class(Tests.Fw.Mock.CMockResultSet).CreateFromXData(xDataResultSetName)
-         
+
          // This result set was used with success, mark it
          kill:($IsObject(rs)) ^||CResultSetTools("_" _ strQueryName, nextUnconsumedGlobal)
       }
@@ -232,7 +262,7 @@ ClassMethod GetMockResultSet(strQueryName As %String = "") As %ResultSet
          set nextUnconsumedGlobal = $Order(^CResultSetTools("_" _ strQueryName, ""))
          set xDataResultSetName = ^CResultSetTools("_" _ strQueryName, nextUnconsumedGlobal)
          set:(xDataResultSetName '= "") rs = ##class(Tests.Fw.Mock.CMockResultSet).CreateFromXData(xDataResultSetName)
-         
+
          // This result set was used with success, mark it
          kill:($IsObject(rs)) ^CResultSetTools("_" _ strQueryName, nextUnconsumedGlobal)
       }
@@ -241,10 +271,10 @@ ClassMethod GetMockResultSet(strQueryName As %String = "") As %ResultSet
    {
       // Trying to access an undefined global throws an error. Ignore it.
    }
-   
+
    // If there are no defined CMockResultSet, create a standard one.
-   set:('$IsObject(rs)) rs = ##class(%ResultSet).%New(strQueryName)   
-   
+   set:('$IsObject(rs)) rs = ##class(%ResultSet).%New(strQueryName)
+
    quit rs
 }
 
@@ -258,7 +288,7 @@ Method GetNextExpectation(instance As Tests.Fw.Mock.CMockBase, strMethodName As 
    {
       set expectation = ..lstExpectation.GetAt(1)
    }
-   
+
    quit expectation
 }
 
@@ -274,14 +304,14 @@ Method ValidateMethodCalled(expectation As Tests.Fw.Mock.CExpectation, instance 
          set status = $$$OK
       }
    }
-   
+
    quit status
 }
 
 Method ProcessParameters(expectation As Tests.Fw.Mock.CExpectation, ByRef lstParams As %ListOfDataTypes, strMethodName As %String) [ Internal, Private ]
 {
    do $$$AssertEquals(expectation.GetLstParameters().Count(), lstParams.Count(), ..GetParameterCountDescription(expectation, lstParams, strMethodName))
-   
+
    if (expectation.GetLstParameters().Count() = lstParams.Count())
    {
       #dim i As %Integer = 1
@@ -294,7 +324,7 @@ Method ProcessParameters(expectation As Tests.Fw.Mock.CExpectation, ByRef lstPar
 
 Method ProcessParameterAtIndex(nIndex As %Integer, parameterExpected, ByRef lstParams As %ListOfDataTypes, strMethodName As %String) [ Internal, Private ]
 {
-   if ($IsObject(parameterExpected) && 
+   if ($IsObject(parameterExpected) &&
        parameterExpected.%Extends(##class(Tests.Fw.Mock.IMockParamValidator).%ClassName(1)))
    {
       do $$$AssertStatusOK(parameterExpected.Validate(lstParams.GetAt(nIndex)), parameterExpected.GetAssertDescription(nIndex, strMethodName))
@@ -311,10 +341,10 @@ Method ProcessParameterAtIndex(nIndex As %Integer, parameterExpected, ByRef lstP
                                                             lstParams.GetAt(nIndex),
                                                             nIndex,
                                                             strMethodName)
-      
+
       // %Status datatype need to be compared in a special way !
       try
-      { 
+      {
          #Dim dummy As %Status = parameterExpected
          do $System.Status.AppendStatus(dummy, lstParams.GetAt(nIndex))
          do $$$AssertStatusEquals(parameterExpected, lstParams.GetAt(nIndex), strAssertDescription)
@@ -343,11 +373,11 @@ Method GetUnexpectedMethodDescription(expectation As Tests.Fw.Mock.CExpectation,
    set strOutput = strOutput _"Got: " _ instance _ "::" _strMethodNameReceived _ "("
    #Dim i As %Integer = 0
    for i=1:1:lstParamsReceived.Count()-1
-   {  
+   {
       set strOutput = strOutput _ lstParamsReceived.GetAt(i)_", "
    }
    set strOutput = strOutput _ lstParamsReceived.GetAt(lstParamsReceived.Count())_") "
-   
+
    quit strOutput
 }
 
@@ -379,30 +409,30 @@ Method IsUnconsumedResultSetLeft(ByRef strFirstUnconsumedQuery As %String = "") 
 ClassMethod CreateClass(strNewClassName As %String, strExtends As %String = "", aParameters As %ArrayOfDataTypes = {$$$NULLOREF}) As %Status
 {
    #dim classDef As %Dictionary.ClassDefinition = ##class(%Dictionary.ClassDefinition).%New(strNewClassName)
-   if (strExtends '= "") 
+   if (strExtends '= "")
    {
       set classDef.Super = strExtends
    }
-   
+
    // Create/Override parameters in this class if required
    if ($IsObject(aParameters))
    {
       #Dim strParameterName As %String = ""
       #Dim strParameterValue As %String = aParameters.GetNext(.strParameterName)
-      while (strParameterName '=  "")  
+      while (strParameterName '=  "")
       {
          if (strParameterName '= "")
          {
             set parameter = ##class(%Dictionary.ParameterDefinition).%New(strNewClassName _ ":" _ strParameterName)
             set parameter.Default = strParameterValue
             do classDef.Parameters.Insert(parameter)
-         }         
+         }
          set strParameterValue = aParameters.GetNext(.strParameterName)
-      }   
+      }
    }
-   
+
    do classDef.%Save()
-   
+
    quit ##class(%SYSTEM.OBJ).Compile(strNewClassName)
 }
 

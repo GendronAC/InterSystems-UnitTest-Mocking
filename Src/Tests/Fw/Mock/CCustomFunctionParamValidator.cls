@@ -16,7 +16,7 @@ Method %OnNew(objectReference As %RegisteredObject, strFunctionName As %String) 
 Method Validate(object) As %Status [ Internal ]
 {
    #dim status As %Status = $$$ERROR("Function or object not defined")
-   
+
    if ($IsObject(..objectReference) && (..strFunctionName '= ""))
    {
       try
@@ -29,7 +29,7 @@ Method Validate(object) As %Status [ Internal ]
          set status = $ZERROR
       }
    }
-   
+
    quit status
 }
 
