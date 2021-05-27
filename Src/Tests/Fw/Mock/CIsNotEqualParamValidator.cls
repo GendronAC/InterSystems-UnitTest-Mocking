@@ -13,7 +13,7 @@ Method %OnNew(itemToCompare) As %Status [ Internal ]
 Method Validate(item) As %Status [ Internal ]
 {
    #dim status As %Status = $$$ERROR("Equal")
-   
+
    if ($data(item) && $IsObject(item) && $IsObject(..itemToCompare))
    {
       try
@@ -24,7 +24,7 @@ Method Validate(item) As %Status [ Internal ]
       {
          if (item.%Extends("%Collection.AbstractList") && ..itemToCompare.%Extends("%Collection.AbstractList"))
          {
-            set:('##class(chs.Fw.EnsExt.Lib.CClassTools).IsEqualList(item, ..itemToCompare)) status = $$$OK
+            set:('##class(Fw.CCollectionTools).IsEqualList(item, ..itemToCompare)) status = $$$OK
          }
          elseif(..itemToCompare '= item)
          {
@@ -41,13 +41,13 @@ Method Validate(item) As %Status [ Internal ]
    {
       set status = $$$OK
    }
-   
+
    quit status
 }
 
 Method GetAssertDescription(nIndex As %Integer, strMethodName As %String) As %String [ Internal ]
 {
-  
+
    quit "Expected Parameter(" _ nIndex _ ") Not Equal for method: " _ strMethodName _ " Got equal"
 }
 

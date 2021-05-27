@@ -3,11 +3,9 @@ Class Tests.Fw.Mock.CMockBase Extends %RegisteredObject [ StorageStrategy = "" ]
 
 Property mockManager As Tests.Fw.Mock.CMockManager [ Private ];
 
-Method %OnNew(mockManager As Tests.Fw.Mock.CMockManager) As %Status [ Internal ]
+Method SetMockManager(mockManager As Tests.Fw.Mock.CMockManager)
 {
    set ..mockManager = mockManager
-   
-   quit $$$OK
 }
 
 /// Since the return type is unknown we cant't specify %RegisteredObject or %DataType as the return value.
